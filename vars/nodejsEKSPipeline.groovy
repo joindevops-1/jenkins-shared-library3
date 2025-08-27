@@ -6,7 +6,7 @@ def call(Map configMap){
         environment { 
             appVersion = ''
             REGION = "us-east-1"
-            ACC_ID = "315069654700"
+            ACC_ID = "160885265516"
             PROJECT = configMap.get('project')
             COMPONENT = configMap.get('component')
         }
@@ -46,6 +46,7 @@ def call(Map configMap){
                     }
                 }
             }
+            
             /* stage('Sonar Scan') {
                 environment {
                     scannerHome = tool 'sonar-7.2'
@@ -66,7 +67,7 @@ def call(Map configMap){
                     waitForQualityGate abortPipeline: true }
                 }
             } */
-            stage('Check Dependabot Alerts') {
+            /* stage('Check Dependabot Alerts') {
                 environment { 
                     GITHUB_TOKEN = credentials('github-token')
                 }
@@ -99,8 +100,8 @@ def call(Map configMap){
                         }
                     }
                 }
-            }
-            stage('Docker Build') {
+            } */
+            /* stage('Docker Build') {
                 steps {
                     script {
                         withAWS(credentials: 'aws-creds', region: 'us-east-1') {
@@ -113,8 +114,8 @@ def call(Map configMap){
                         }
                     }
                 }
-            }
-            stage('Check Scan Results') {
+            } */
+            /* stage('Check Scan Results') {
                 steps {
                     script {
                         withAWS(credentials: 'aws-creds', region: 'us-east-1') {
@@ -147,7 +148,7 @@ def call(Map configMap){
                         }
                     }
                 }
-            }
+            } */
             stage('Trigger Deploy') {
                 when{
                     expression { params.deploy }
