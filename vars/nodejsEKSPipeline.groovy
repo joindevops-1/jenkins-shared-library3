@@ -9,6 +9,10 @@ def call(Map configMap){
             ACC_ID = "160885265516"
             PROJECT = configMap.get('project')
             COMPONENT = configMap.get('component')
+
+            JIRA_SITE = 'JIRA'
+            JIRA_PROJECT_KEY = 'DAWS84S'   // <-- change to your project key
+            TARGET_ENV = 'dev' 
         }
         options {
             timeout(time: 30, unit: 'MINUTES') 
@@ -46,7 +50,33 @@ def call(Map configMap){
                     }
                 }
             }
-            
+            stage('Jira'){
+                steps{
+                    script{
+                        def summary = "DEV deploy succeeded: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                        def desc = "sample"
+
+                        // Jira issue payload (Jira Cloud accepts project key; use issue type that exists in your project)
+                        def issue = [
+                            fields: [
+                                project:   [ key: env.JIRA_PROJECT_KEY ],
+                                issuetype: [ name: 'Task' ],        // or 'Story'/'Bug' per your scheme
+                                summary:   summary,
+                                description: desc,
+                                labels:    ['deployment','dev','jenkins']
+                                // For Jira Cloud assignment, prefer accountId:
+                                // assignee: [ accountId: 'abcd1234...' ]
+                            ]
+                        ]
+
+                        def res = jiraNewIssue issue: issue // JIRA_SITE is taken from environment
+                        echo "Created Jira issue: ${res.data?.key}"
+                        // Optionally expose it for later stages:
+                        env.CREATED_JIRA = res.data?.key ?: ''
+                    }
+                }
+            }
+
             /* stage('Sonar Scan') {
                 environment {
                     scannerHome = tool 'sonar-7.2'
