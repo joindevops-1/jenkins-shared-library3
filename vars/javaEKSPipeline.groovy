@@ -26,9 +26,9 @@ def call(Map configMap){
             stage('Read package.json') {
                 steps {
                     script {
-                        def packageJson = readJSON file: 'package.json'
-                        appVersion = packageJson.version
-                        echo "Package version: ${appVersion}"
+                        def pom = readMavenPom file: 'pom.xml'
+                        appVersion = pom.version
+                        echo "App version: ${appVersion}"
                     }
                 }
             }
@@ -36,7 +36,7 @@ def call(Map configMap){
                 steps {
                     script {
                     sh """
-                            npm install
+                            mvn clean package
                     """
                     }
                 }
@@ -47,32 +47,6 @@ def call(Map configMap){
                     sh """
                             echo "unit tests"
                     """
-                    }
-                }
-            }
-            stage('Jira'){
-                steps{
-                    script{
-                        def summary = "DEV deploy succeeded: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-                        def desc = "sample"
-
-                        // Jira issue payload (Jira Cloud accepts project key; use issue type that exists in your project)
-                        def issue = [
-                            fields: [
-                                project:   [ key: env.JIRA_PROJECT_KEY ],
-                                issuetype: [ name: 'Task' ],        // or 'Story'/'Bug' per your scheme
-                                summary:   summary,
-                                description: desc,
-                                labels:    ['deployment','dev','jenkins']
-                                // For Jira Cloud assignment, prefer accountId:
-                                // assignee: [ accountId: 'abcd1234...' ]
-                            ]
-                        ]
-
-                        def res = jiraNewIssue issue: issue // JIRA_SITE is taken from environment
-                        echo "Created Jira issue: ${res.data?.key}"
-                        // Optionally expose it for later stages:
-                        env.CREATED_JIRA = res.data?.key ?: ''
                     }
                 }
             }
